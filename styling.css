@@ -3,6 +3,11 @@
     src: url('Monaco400.ttf')  format('truetype');
   }
 
+:root{
+    --lavender-dark: rgb(114, 152, 254);
+    --lavender-light: rgb(212, 226, 255);
+}
+
 body{
     background-color: black;
     color: whitesmoke;
@@ -21,7 +26,7 @@ main section{
 }
 
 .intro{
-    padding: 1rem 0;
+    padding: 1rem 0;    
 }
 
 .intro, .intro h3, .intro p{
@@ -30,7 +35,7 @@ main section{
 
 .intro_phase{
     font-weight: bold;
-    text-align: center;
+    /* text-align: center; */
 }
 
 .my_name{
@@ -59,15 +64,20 @@ li{
     margin: 1rem 0;
 }
 
-main.title{
-    color: rgb(114, 152, 254);
+main.title, .my_name{
+    color: var(--lavender-dark);
+}
+
+a.company_link{
+    color: var(--lavender-light);
+    font-weight: 600;
 }
 
 .projects{
-    margin: 2em 0;
+    margin: 1em 0;
 }
 .projects h3, h3.title{
-    color: rgb(212, 226, 255);
+    color: var(--lavender-dark);
 }
 
 .projects article{
@@ -75,8 +85,14 @@ main.title{
 }
 
 span.codename, li.artlink a{
-    color: rgb(114, 152, 254);
+    color: var(--lavender-light);
     font: bold 500;
+}
+
+span.project_date{
+    font-size: 0.75rem;
+    color: var(--lavender-light);
+    font-weight: 600;
 }
 
 span.skill{
@@ -89,7 +105,7 @@ span.skill{
 
 .article_placeholder{
     font-style: italic;
-    color: rgb(114, 152, 254);
+    color: var(--lavender-light);
 }
 
 .contact_container{
@@ -117,12 +133,12 @@ div.c_link{
 
     h1{
         padding-top: 1rem;
-        text-align: center;
+        /* text-align: center; */
     }
-
+/* 
     .intro, .intro h3, .intro p{
         text-align: center;
-    }
+    } */
 
     .contact_container{
         margin: 0.5rem 0;
