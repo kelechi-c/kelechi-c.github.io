@@ -48,7 +48,8 @@ main section {
 
 .my_name {
   margin-top: 1rem;
-  font-size: 2em;
+  font-size: 1.5em;
+  letter-spacing: 0.08em;
 }
 
 .skill_list {
@@ -85,7 +86,7 @@ a.company_link {
 }
 
 .projects {
-  margin: 1em 0;
+  margin: 0.5em 0;
 }
 
 .projects h3,
