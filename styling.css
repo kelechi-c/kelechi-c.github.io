@@ -11,7 +11,7 @@
 body {
   background-color: black;
   color: whitesmoke;
-  margin: 2rem 8rem;
+  margin: 2rem;
 
   /* padding: 2rem 4rem; */
   font-family: 'Monaco';
@@ -28,7 +28,7 @@ main section {
 }
 
 .intro {
-  padding: 1rem 0;
+  padding: 0.5rem 0;
 }
 
 .intro,
@@ -59,7 +59,7 @@ main section {
 a,
 a:link,
 a:visited {
-  color: whitesmoke;
+  color: var(--lavender-light);
   font-weight: 700;
   padding: 1rem 0;
   margin-top: 0.3rem;
@@ -95,7 +95,7 @@ h3.title {
 }
 
 .projects article {
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.2rem;
 }
 
 span.codename,
@@ -143,6 +143,7 @@ div.c_link {
 @media screen and (min-width: 768px) {
   body {
     padding: 0 15%;
+    margin: 2rem 8rem;
   }
 
   h1 {
