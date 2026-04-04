@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Monaco";
-  src: url('Monaco400.ttf') format('truetype');
+  src: url('sfpromedium.otf') format('truetype');
 }
 
 :root {
@@ -11,10 +11,12 @@
 body {
   background-color: black;
   color: whitesmoke;
-  padding: 2rem 1rem;
+  margin: 2rem 8rem;
+
+  /* padding: 2rem 4rem; */
   font-family: 'Monaco';
   min-height: 100vh;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 h1 {
@@ -33,6 +35,10 @@ main section {
 .intro h3,
 .intro p {
   text-align: left;
+}
+
+.intro p {
+  line-height: 1.8;
 }
 
 .intro_phase {
