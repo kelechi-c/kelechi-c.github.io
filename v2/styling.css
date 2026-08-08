@@ -23,10 +23,10 @@
 html{scroll-behavior:smooth;scroll-padding-top:22px}
 ::selection{background:rgba(255,255,255,.28);color:var(--ink)}
 
-/* v1 font — SF Pro Medium (self-hosted otf at repo root) */
+/* v1 font — SF Pro Medium (self-hosted otf, local to v2) */
 @font-face {
   font-family: "SF Pro Medium";
-  src: url('../sfpromedium.otf') format('truetype');
+  src: url('sfpromedium.otf') format('truetype');
 }
 
 body{margin:0;background:var(--paper);color:var(--ink);
