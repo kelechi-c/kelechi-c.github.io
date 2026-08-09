@@ -70,6 +70,11 @@ h1::after{content:"";display:block;width:2.4rem;height:2px;background:var(--acce
 .card .date{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.08em;
   color:var(--muted);margin-top:.7em}
 
+/* plain article list (articles/index.html) */
+.artlist{list-style:none;padding:0;margin:1.2em 0}
+.artlist li{margin:.7em 0}
+.artlist .date{font-size:.88rem;color:var(--muted)}
+
 /* callout — accent-bordered note box */
 .callout{border:1px solid var(--line);border-left:4px solid var(--accent);
   background:var(--paper-2);border-radius:8px;padding:12px 18px;margin:1.4em 0}
