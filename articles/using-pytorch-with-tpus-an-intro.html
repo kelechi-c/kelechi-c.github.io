@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styling.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23fff'/><circle cx='8' cy='8' r='3.5' fill='%23000'/></svg>">
+<title>Using pytorch with TPUs: an intro · Kelechi (tensor)</title>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Using pytorch with TPUs: an intro</h1>
+  <p class="article-date">28 August 2024</p>
+</header>
+<main>
+<p><strong>Hello there, it’s Tensor.</strong></p>
+<p>This is just a scrappy guide on how I got to set up <strong>pytorch
+training</strong> with <strong>Google TPUs</strong> after many trials
+[especially the ones on <strong>Kaggle/Colab</strong>,
+<strong>TPUv3.8</strong>]. As a GPU-poor researcher, I used up my weekly
+30 GPU hours on Kaggle, so I decided to find a way to use the weekly 20
+TPU hours too [and also because I am a fan of <strong>Google</strong>].
+Before I continue, here is the official repo: <a
+href="https://github.com/pytorch/xla/blob/master/API_GUIDE.md"><strong>pytorch/xla</strong></a><strong>.</strong></p>
+<p>First, about TPUs (<strong>Tensor Processing Units</strong>), they
+are Google’s AI-specific accelerator chips, using application specific
+integrated circuits (<strong>ASICs</strong>), they use the
+<strong>XLA</strong> compiler rather than <strong>CUDA</strong>, but
+still work with Tensorflow, Pytorch and JAX. They are more
+power-efficient than GPUs and specialized for AI training workloads, but
+let’s not digress to the architecture <strong>:)</strong></p>
+<p><strong>Setup</strong><br />
+For a basic training setup, without distributed parallel processing
+across several TPU chips (a single TPU has <strong>8</strong> or more
+<strong>‘TensorCores’,</strong> depending on the version), I will show
+an example for just training a simple model with TPUs.</p>
+<p>First, you make the necessary imports:</p>
+<pre><code>pip install torch-xla # install for local development</code></pre>
+<pre><code>import torch_xla as xla
+import torch_xla.core.xla_model as xm
+
+print(xla.devices()) #to check the TPU cores and count</code></pre>
+<p>Next you just have to create a <strong>device</strong> variable,
+which the <strong>model</strong> and <strong>data</strong> will be
+mapped to:</p>
+<pre><code>device = xla.device() #or xm.xla_device()
+print(device)</code></pre>
+<p>The rest of the code would use normal pytorch functionalities. Next
+major area of change is the t<strong>raining loop/function</strong>:</p>
+<pre><code>model = Classifier().to(device) # move model to tpu 
+loss_fn = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=lr) 
+def _trainer():
+    for epoch in range(epochs):
+        for _, (image, label) in enumerate(train_loader):
+            with xla.step(): # add this line
+                # move image and labels to device
+                image, label = image.to(device), label.to(device)
+
+                output = model(image)
+                loss = loss_fn(output, label)
+                loss.backward()
+                losses.append(loss.item())
+
+                # gradient update
+                xm.optimizer_step(optimizer) # replaces optimizer.step()
+                xm.mark_step() # for gradient tracing 
+                optimizer.zero_grad()
+
+_trainer()</code></pre>
+<p>In summary, these are the main changes:</p>
+<ul>
+<li>Import torch_xla, and the core xla_model class, and create a device
+variable for <strong>tensor mapping/transfer.</strong><br />
+</li>
+<li>Wrap the training loop/gradient computation code with
+xla.step()<br />
+</li>
+<li>Replace optimizer.step() with xm.optimizer_step(optimizer)<br />
+</li>
+<li>Add xm.mark_step() [xm is the import symbol for
+torch_xla.core.xla_model]<br />
+</li>
+<li>Remove all cuda-related code, as TPUs use the <strong>XLA</strong>
+compiler.</li>
+</ul>
+
+<h2 id="comparison"><strong>Comparison</strong></h2>
+<p>Compared to GPUs, Kaggle TPU VMs are accessed in queues, which might
+cause some latency. As for this comparison, I am using the <strong>Tesla
+P100</strong> and Google <strong>TPU v3.8</strong> (current version is
+<strong>v6</strong>), both on Kaggle. I ran the same training run for a
+tiny diffusion model, on 1000 images. On the GPU, it took
+<strong>4.46</strong> minutes, while on the TPU, it took
+<strong>3.37</strong> minutes. Even with this, TPUs usually start off
+slow while computing the graph, then they get faster.</p>
+<p><strong>Conclusion</strong><br />
+For a comprehensive example, check out my <strong><a
+href="https://gist.github.com/kelechi-c/3fec230de4cd5f37039dfcddfeeb048b">github
+gist</a></strong> on training a <strong>tiny</strong> <strong>diffusion
+model</strong> using a TPU.<br />
+I will update the article later on using
+<strong>multi-processing</strong> for all TPU cores, and also with other
+necessary additions, which creates a significant speedup. Feedbacks and
+corrections are highly appreciated and needed <strong>:)</strong></p>
+<p><strong>Thanks</strong>!</p>
+<p><strong>Other useful guides you should check out:</strong></p>
+<ul>
+<li><a
+href="https://github.com/pytorch/xla/blob/master/API_GUIDE.md">https://github.com/pytorch/xla/blob/master/API_GUIDE.md</a><br />
+</li>
+<li><a
+href="https://github.com/pytorch/xla">https://github.com/pytorch/xla</a><br />
+</li>
+<li><a href="https://pytorch.org/xla/">https://pytorch.org/xla/</a></li>
+</ul>
+</main>
+<footer>
+  <p class="updated"><a href="../index.html">← back to home</a></p>
+</footer>
+</div>
+</body>
+</html>

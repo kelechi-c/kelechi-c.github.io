@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../styling.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23fff'/><circle cx='8' cy='8' r='3.5' fill='%23000'/></svg>">
+<title>shira: a neural audio search engine based on CLAP · Kelechi (tensor)</title>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>shira: a neural audio search engine based on CLAP</h1>
+  <p class="article-date">22 October 2024</p>
+</header>
+<main>
+<p><strong>Hello there, it’s Tensor</strong></p>
+<p>In this article, I will give a walkthrough on how
+<strong>shira</strong> works, how I built the library/system, code
+samples, intuition, etc.</p>
+<p><img src="images/image1.png" /></p>
+<h3 id="overview"><strong>Overview</strong></h3>
+<p>First off, I have always <strong>admired</strong> <a
+href="https://www.shazam.com/"><strong>Shazam</strong></a>, so I decided
+to <strong>reproduce the workings with neural networks</strong>. So in
+the process, I built this library for <strong>audio retrieval</strong>,
+semantic search and possibly <strong>recommendation</strong>, which I
+named <strong>shira</strong>. The code is open-sourced at <a
+href="https://github.com/kelechi-c/shira_audio"><strong>https://github.com/kelechi-c/shira_audio</strong></a>.</p>
+<h3 id="so-how-does-shira-even-work"><strong>So how does shira even
+work?</strong></h3>
+<p><strong>shira</strong> uses a <strong>pretrained</strong>
+<strong>CLAP</strong> model, specifically LAION’s <a
+href="https://huggingface.co/laion/larger_clap_music_and_speech"><strong>laion/larger_clap_music_and_speech</strong></a>.
+The local <strong>audio files/dataset</strong> is
+<strong>indexed</strong> and <strong>embeddings</strong> are generated
+(with CLAP’s <strong>audio encoder</strong>), then a
+<strong>FAISS</strong> vector embedding index is created.</p>
+<p>The files are retrieved based on <strong>cosine similarity</strong>
+between embeddings.</p>
+<p>Since in <strong>contrastive text-audio pretraining</strong>, the
+text and audio vectors are projected to a <strong>joint embedding
+space</strong>, this enables <strong>cross-modal retrieval</strong>,
+meaning both text/audio can be used to retrieve <strong>semantically
+similar audio</strong>.</p>
+<p><img src="images/image2.png" /></p>
+<p>For more info on <strong>CLAP</strong> check out the <a
+href="https://arxiv.org/abs/2211.06687"><strong>paper on
+arxiv</strong></a></p>
+<h3 id="what-can-shira-be-used-for"><strong>what can shira be used
+for?</strong></h3>
+<ol type="1">
+<li><strong>Text-based/semantic</strong> audio search<br />
+</li>
+<li>Audio <strong>search/matching</strong> with a reference audio (like
+<strong>Shazam</strong>)<br />
+</li>
+<li>Audio <strong>recommendation</strong><br />
+</li>
+<li>file <strong>tagging</strong> for recordings, etc<br />
+</li>
+<li>whatever the <strong>open-source</strong> community finds out!</li>
+</ol>
+<h3 id="what-does-this-look-like-in-code"><strong>what does this look
+like in code?</strong></h3>
+<p>The following snippets show the basic working backbone of the
+library.</p>
+<p>First, necessary imports/installation:</p>
+<pre><code>! pip install -q faiss-cpu transformers datasets librosa numpy</code></pre>
+<pre><code>import numpy as np # data/audio processing
+import librosa # for reading audio files
+from datasets import load_dataset, Dataset, Audio # dataset creation/indexing
+from transformers import ClapModel, ClapProcessor # CLAP modules
+from pathlib import Path</code></pre>
+<p>Then we declare the necessary variables:</p>
+<pre><code>model_id = &quot;laion/larger_clap_music_and_speech&quot;
+sample_rate = 48000 # target sample rate used for CLAP
+max_duration = 20 # trim reference audio files to 20 seconds</code></pre>
+<p>Necessary utility functions for file loading, retrieval,
+normalization:</p>
+<pre><code># filter corrupt files and return list of soundfile-readable files only
+def filter_files(audio_files: List) -&gt; List[str]:
+    valid_files = []
+    for file in audio_files:
+        try:
+            sf.read(file)
+            valid_files.append(file)
+        except:
+            continue
+     return valid_files</code></pre>
+<pre><code># crawl all the local audio files and retuun a single list of files,
+def audiofile_crawler(directory: str = Path.home()):
+      audio_extensions = (&quot;.mp3&quot;, &quot;.wav&quot;, &quot;.flac&quot;, &quot;.ogg&quot;)
+
+      dir_path = Path(directory)
+      print(dir_path)
+
+      # Use a generator expression to find all files with the given extensions
+      audio_files = [str(file) for ext in tqdm(audio_extensions, ncols=50) for file in dir_path.rglob(f&quot;{ext}&quot;)]
+
+      matching_files = filter_files(audio_files) # filter corrupt files
+      print(f&quot;{len(matching_files)} valid files out of {len(audio_files)} files.&quot;)
+
+      return matching_files, len(matching_files)
+
+def read_audio(audio_file: str) -&gt; np.ndarray:
+      #read audio file into numpy array/torch tensor from file path
+      waveform, _ = librosa.load(audio_file, sr=sample_rate)
+      waveform = trimpad_audio(waveform)
+
+      return waveform
+
+# trimming audio to a fixed length for all tasks
+def trimpad_audio(audio: np.ndarray) -&gt; np.ndarray:
+      samples = int(sample_rate  max_duration) # calculate total number of samples
+
+      # cut off excess samples if beyond length, or pad to fixed length
+      if len(audio) &gt; samples:
+            audio = audio[:samples]
+      else:
+            pad_width = samples - len(audio)
+      
+      audio = np.pad(audio, (0, pad_width), mode=&quot;reflect&quot;)
+
+      return audio</code></pre>
+<p>Next, we locate all audio files within the target directory(e.g home,
+downloads)</p>
+<pre><code>audiofiles, f_count = audiofile_crawler(&#39;downloads&#39;) # get list of audio files
+audio_dataset = Dataset.from_dict({&#39;audio&#39;: audiofiles, &#39;path&#39;: audiofiles}) # create a dataset of the audiofiles and paths
+audio_dataset = self.audio_dataset.cast_column(&#39;audio&#39;,Audio(sampling_rate=22400)) # apply an audio transform on the audio column</code></pre>
+<p>Load the required models(<strong>LAION AI’s CLAP</strong>):</p>
+<pre><code>clap_model = ClapModel.from_pretrained(model_id).to(&#39;cuda&#39;) # or &#39;cpu&#39;
+clap_processor = ClapProcessor.from_pretrained(model_id)</code></pre>
+<p>We will then define a function to map/encode the audio data</p>
+<pre><code>def embed_audio_batch(batch):
+      sample = batch[&quot;audio&quot;][&#39;array&#39;]
+
+      coded_audio = clap_processor( # preprocess with CLAP&#39;s encoder
+            audios=sample,
+            return_tensors=&quot;pt&quot;,
+            sampling_rate=48000
+      )[&quot;input_features&quot;]
+
+      # extract audio features and embeddings
+      audio_embed = clap_model.get_audio_features(coded_audio)
+      batch[&quot;audio_embeddings&quot;] = audio_embed[0] # this adds a separate embedding column
+      
+      return batch
+
+embedded_data = music_data.map(embed_audio_batch) # apply function to all data points
+
+embedded_data.add_faiss_index(column=&quot;audio_embeddings&quot;) # create FAISS index for retrieval</code></pre>
+<p>The functions to be defined now are for <strong>text</strong>, and
+<strong>audio</strong> based search.</p>
+<p>For audio search with a reference file (works a bit like Shazam)</p>
+<pre><code>def audio_search(input_audio, embedded_data, k_count: int=2, device: torch.device=device):
+      if not isinstance(input_audio, np.ndarray):
+            input_audio = read_audio(input_audio) # loads audio file from wav to ndarray
+
+      audio_values = clap_processor(audios=input_audio, return_tensors=&quot;pt&quot;, sampling_rate=sample_rate)[&quot;audio_features&quot;] # type: ignore
+      audio_values = audio_values.to(device)
+      wav_embed = clap_model.get_audio_features(audio_values)[0]
+      wav_embed = wav_embed.detach().cpu().numpy()
+
+      scores, retrieved_audio = embedded_data.get_nearest_examples(&quot;audio_embeddings&quot;, wav_embed, k=k_count)
+
+      return retrieved_audio, scores
+
+audiofile = &quot;/sample-music/beethoven_sonata.mp3&quot; # reference file
+similar_audio, scores = audio_search(audiofile, embedded_data)</code></pre>
+<p>Meanwhile for <strong>text-based search</strong></p>
+<pre><code>def text_search(
+      text_query: str, embedded_data: Dataset, k_count: int = 4, device = &#39;cuda&#39; # or cpu
+):
+
+      encoded_text = clap_processor(text=text_query, return_tensors=&quot;pt&quot;)[&quot;input_ids&quot;]
+      encoded_text = encoded_text.to(device)
+
+      text_embed = clap_model.get_text_features(encoded_text)[0] # extract text encoding
+      text_embed = text_embed.detach().cpu().numpy() # offload vectors to cpu
+
+      scores, retrieved_audio = embedded_data.get_nearest_examples(&quot;audio_embeddings&quot;, text_embed, k=k_count) # retrieve similar samples with scores
+
+      return retrieved_audio, scores
+
+
+text_q = &quot;rap music&quot;
+similar_samples, t_scores = text_search(text_q, embedded_data)
+
+similar_samples[&#39;path&#39;][0] # top sample&#39;s file path</code></pre>
+<p>Using my <strong>library</strong>(<strong>shira</strong>) directly,
+it is as simple as:</p>
+<pre><code>from shira import AudioSearch, AudioEmbedding # pip install shira-audio
+
+embedder = AudioEmbedding(data_path=&#39;downloads&#39;) # init embedder class
+audio_data_embeds = embedder.index_files() # create embeddings and index audio files
+
+neural_search = AudioSearch() #semantic search class
+
+audiofile = &#39;beethoven_moonlight_sonata.mp3&#39; # audio file for reference
+
+# get k similar audio w/probability score pairs
+similar_samples, scores = neural_search.audio_search(audiofile, audio_data_embeds, k_count=4)
+
+similar_samples[&#39;path&#39;][0], scores[0]</code></pre>
+<p>Check the github readme for more snippet examples :)</p>
+<h3 id="sample-runs"><strong>sample runs</strong></h3>
+<ol type="1">
+<li>CLI text search</li>
+</ol>
+<pre><code>shira_text -t classical -d /kaggle/input/musicsamples</code></pre>
+<p>. . . . Output:</p>
+<pre><code>/kaggle/input/samplemusic/audiofiles
+100%|██████████████| 4/4 [00:00&lt;00:00, 590.93it/s]
+7 valid files out of 8 files.
+latency =&gt; audiofile_crawler: 3.7593 seconds
+Map: 100%|█████████████████████████████████| 7/7 [01:10&lt;00:00, 10.14s/ examples]
+100%|███████████████████████████████████████████| 1/1 [00:00&lt;00:00, 1759.36it/s]
+created faiss vector embeddings/index for /kaggle/input/samplemusic/audiofiles @ /root/audio_embeddings
+latency =&gt; index_files: 76.5728 seconds
+loaded retrieval model from local storage @ /root/clap_model
+latency =&gt; text_search: 0.2655 seconds
+
+text query - classical
+...........
+search results =&gt;
+0.../kaggle/input/samplemusic/audiofiles/AllFallsDown.mp3, p = 1.15396738052
+1.../kaggle/input/samplemusic/audiofiles/Lindsey_Stirling_-_Carol_of_the_Bells_CeeNaija.com_.mp3, p = 1.526132822
+2.../kaggle/input/samplemusic/audiofiles/Flight-of-the-bumblebee-piano.mp3, p = 1.5823228359
+3.../kaggle/input/samplemusic/audiofiles/Alan-Walker-Chameleon-download-wowplus.mp3, p = 1.66856491565</code></pre>
+<ol type="1">
+<li>Audio matching (terminal)</li>
+</ol>
+<pre><code>shira -f /kaggle/input/musicsamples/audiofiles/Eminem-Without-Me.mp3 -d /kaggle/input</code></pre>
+<pre><code>/kaggle/input
+100%|██████████████| 4/4 [00:00&lt;00:00, 159.84it/s]
+16 valid files out of 18 files.
+latency =&gt; audiofile_crawler: 7.9091 seconds
+Map: 100%|███████████████████████████████| 16/16 [02:40&lt;00:00, 10.02s/ examples]
+100%|███████████████████████████████████████████| 1/1 [00:00&lt;00:00, 1605.17it/s]
+created faiss vector embeddings/index for /kaggle/input @ /root/audio_embeddings
+latency =&gt; index_files: 165.1681 seconds
+loaded retrieval model from local storage @ /root/clap_model
+latency =&gt; audio_search: 2.6201 seconds
+
+reference file - /kaggle/input/musicsamples/audiofiles/Eminem-Without-Me.mp3
+...........
+search results =&gt;
+0.../kaggle/input/samplemusic/audiofiles/Eminem-Without-Me.mp3, p = 1.110220193
+1.../kaggle/input/musicsamples/audiofiles/IntroducingiPhone15WOWApple.mp3, p = 1.133802413
+2.../kaggle/input/musicsamples/audiofiles/Elevate.mp3, p = 1.1349503993</code></pre>
+<h3 id="conclusion"><strong>conclusion</strong></h3>
+<p>Well, while I didn’t <strong>reproduce the exact workings of
+Shazam</strong>(or anything of that scale), I did create something
+<strong>similar</strong>, which I hope will be useful to
+<strong>developers</strong> out there dealing with audio datasets, and
+maybe even companies that deal with <strong>audio
+search/retrieval/recommendation</strong>. More updates will be made to
+the library. Moving on to the next project.</p>
+<p><strong>Thanks for reading!</strong></p>
+<h3 id="acknowledgements"><strong>Acknowledgements</strong></h3>
+<p><strong>LAION</strong> AI for their <a
+href="https://arxiv.org/abs/2211.06687"><strong>research</strong></a>
+and open <strong>model</strong>: <a
+href="https://huggingface.co/laion/larger_clap_music_and_speech"><strong>laion/larger_clap_music_and_speech</strong></a>.</p>
+</main>
+<footer>
+  <p class="updated"><a href="../index.html">← back to home</a></p>
+</footer>
+</div>
+</body>
+</html>

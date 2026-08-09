@@ -1,166 +1,98 @@
+/* ============================================================
+   personal site stylesheet (black/white, SF Pro Medium)
+   See style.md for the full template.
+   ============================================================ */
+
+:root{
+  /* palette — pure black/white */
+  --background:#000000;   /* pure black page */
+  --surface:#111111;      /* cards / alternate sections */
+  --border:#2e2e2e;       /* subtle dividers */
+  --text:#ffffff;         /* pure white */
+  --muted:#8a8a8a;        /* metadata / secondary text */
+  --accent:#ffffff;       /* primary accent */
+  --accent-2:#c9c9c9;     /* lighter gray (hover) */
+  --blue:#d4d4d4;         /* occasional secondary accent */
+  --green:#b0b0b0;        /* occasional tertiary accent */
+  --paper:var(--background); --paper-2:var(--surface); --paper-3:#1c1c1c; --line:var(--border);
+  --ink:var(--text); --ink-2:#b5b5b5;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:22px}
+::selection{background:rgba(255,255,255,.28);color:var(--ink)}
+
+/* v1 font — SF Pro Medium (self-hosted otf, local to v2) */
 @font-face {
-  font-family: "Monaco";
+  font-family: "SF Pro Medium";
   src: url('sfpromedium.otf') format('truetype');
 }
 
-:root {
-  --lavender-dark: rgb(114, 152, 254);
-  --lavender-light: rgb(212, 226, 255);
-}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"SF Pro Medium","Anthropic Sans",Arial,sans-serif;
+  line-height:1.68;font-size:17px}
 
-body {
-  background-color: black;
-  color: whitesmoke;
-  margin: 2rem;
+h1,h2,h3,h4{font-family:"SF Pro Medium","Anthropic Serif",Georgia,serif;
+  font-weight:500;line-height:1.28;color:var(--ink)}
+h1{font-size:2.05rem;margin:.15em 0 .2em;letter-spacing:-.01em}
+h2{font-size:1.5rem;margin:1.8em 0 .85em;padding-top:.45em;border-top:1px solid var(--line)}
+h3{font-size:1.12rem;margin:1.7em 0 .55em}
+p{margin:.75em 0}
 
-  /* padding: 2rem 4rem; */
-  font-family: 'Monaco';
-  min-height: 100vh;
-  font-size: 1rem;
-}
+/* v1: bold intro subheading under the name */
+.intro_phase{color:var(--ink);font-weight:700;font-size:1.3rem;margin:.8em 0 0.5em}
 
-h1 {
-  text-align: left;
-}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{color:var(--accent-2)}
 
-main section {
-  font: 'Monaco' sans-serif;
-}
+ul{padding-left:1.2em;margin:.8em 0}
+li{margin:.28em 0}
+li::marker{color:var(--accent)}
 
-.intro {
-  padding: 0.5rem 0;
-}
+.wrap{max-width:880px;margin:0 auto;padding:56px 28px 80px}
 
-.intro,
-.intro h3,
-.intro p {
-  text-align: left;
-}
+/* name heading with accent dash */
+h1::after{content:"";display:block;width:2.4rem;height:2px;background:var(--accent);margin-top:.5em;border-radius:2px}
 
-.intro p {
-  line-height: 1.8;
-}
+/* card grid — from the artifact landing pages */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:2.2em 0}
+.card{position:relative;display:block;overflow:hidden;background:var(--surface);
+  border:1px solid var(--border);border-radius:14px;padding:20px 22px 18px 24px;
+  text-decoration:none;color:var(--ink);
+  transition:transform .15s,border-color .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 6px 22px rgba(0,0,0,.34)}
+.card h2{font-family:"SF Pro Medium","Anthropic Serif",Georgia,serif;font-weight:500;font-size:1.3rem;
+  margin:0 0 .4em;line-height:1.2;padding-right:2.6rem;border-top:none;padding-top:0}
+.card p{color:var(--ink-2);font-size:.93rem;margin:0}
+.card .go{color:var(--accent-2);font-size:.82rem;margin-top:.75em;
+  font-family:"JetBrains Mono",monospace;letter-spacing:.04em;transition:transform .15s}
+.card:hover .go{transform:translateX(3px)}
+.card .date{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.08em;
+  color:var(--muted);margin-top:.7em}
 
-.intro_phase {
-  font-weight: bold;
-  /* text-align: center; */
-}
+/* callout — accent-bordered note box */
+.callout{border:1px solid var(--line);border-left:4px solid var(--accent);
+  background:var(--paper-2);border-radius:8px;padding:12px 18px;margin:1.4em 0}
+.callout .ct{font-family:"Anthropic Serif",Georgia,serif;font-weight:600;font-size:.9rem;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
 
-.my_name {
-  margin-top: 1rem;
-  font-size: 1.5em;
-  letter-spacing: 0.08em;
-}
+code{font-family:"JetBrains Mono",monospace;font-size:.85em;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
 
-.skill_list {
-  font-weight: 500;
-}
+/* article pages */
+.article-date{color:var(--muted);font-size:.9rem;margin:.4em 0 0}
+pre{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;overflow-x:auto;font-family:"JetBrains Mono",monospace;
+  font-size:.85rem;line-height:1.55}
+pre code{background:none;border:none;padding:0;font-size:inherit;color:var(--ink-2)}
+img{max-width:100%;border-radius:8px;border:1px solid var(--line);margin:.6em 0}
 
-a,
-a:link,
-a:visited {
-  color: var(--lavender-light);
-  font-weight: 700;
-  padding: 1rem 0;
-  margin-top: 0.3rem;
-  border-radius: 10px;
-  text-decoration: none;
-}
+footer{margin-top:2.4em;padding-top:1.1em;border-top:1px solid var(--line);
+  color:var(--muted);font-size:.9rem}
+.updated{font-size:.8rem;margin-top:.5em;color:var(--muted)}
 
-ul {
-  padding: 0 1.3rem;
-}
-
-li {
-  margin: 1rem 0;
-}
-
-main.title,
-.my_name {
-  color: var(--lavender-dark);
-}
-
-a.company_link {
-  color: var(--lavender-light);
-  font-weight: 600;
-}
-
-.projects {
-  margin: 0.5em 0;
-}
-
-.projects h3,
-h3.title {
-  color: var(--lavender-dark);
-}
-
-.projects article {
-  padding-bottom: 0.2rem;
-}
-
-span.codename,
-li.artlink a {
-  color: var(--lavender-light);
-  font: bold 500;
-}
-
-span.project_date {
-  font-size: 0.75rem;
-  color: var(--lavender-light);
-  font-weight: 600;
-}
-
-span.skill {
-  font-weight: 600;
-}
-
-.articles {
-  padding-bottom: 1.5rem;
-}
-
-.article_placeholder {
-  font-style: italic;
-  color: var(--lavender-light);
-}
-
-.contact_container {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.contact_container a {
-  font-size: 0.85rem;
-  padding-bottom: 1rem;
-  flex-basis: auto;
-}
-
-div.c_link {
-  padding-bottom: 1rem;
-}
-
-@media screen and (min-width: 768px) {
-  body {
-    padding: 0 15%;
-    margin: 2rem 8rem;
-  }
-
-  h1 {
-    padding-top: 1rem;
-    /* text-align: center; */
-  }
-
-  /*
-  .intro, .intro h3, .intro p{
-      text-align: center;
-  }
-  */
-
-  .contact_container {
-    margin: 0.5rem 0;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-  }
+@media(max-width:560px){
+  .wrap{padding:30px 18px 60px}
+  body{font-size:16px}
+  h1{font-size:1.6rem}
 }
