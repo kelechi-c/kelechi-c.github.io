@@ -72,7 +72,7 @@ h1::after{content:"";display:block;width:2.4rem;height:2px;background:var(--acce
 
 /* plain article list (articles/index.html) */
 .artlist{list-style:none;padding:0;margin:1.2em 0}
-.artlist li{margin:.7em 0}
+.artlist li{margin:1.4em 0}
 .artlist .date{font-size:.88rem;color:var(--muted)}
 
 /* callout — accent-bordered note box */
